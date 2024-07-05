@@ -1,0 +1,81 @@
+#include <LiquidCrystal.h>
+const int rs = 2, en =3, d4 =4, d5 =5, d6 =6, d7 =7;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+#include <Wire.h>
+#include <SPI.h>
+#include <MFRC522.h>
+//#include <LiquidCrystal_I2C.h>
+//LiquidCrystal_I2C lcd(0x27,16,2);
+ MFRC522 mfrc522(10,9); // MFRC522 mfrc522(SS_PIN, RST_PIN)
+ String tagUID = "E3 96 1D 85"; // String to store UID of tag. Change it with your tag's
+ //String tagUID1 = "83 00 95 A9";
+boolean RFIDMode = true; // boolean to change modes
+boolean NormalMode = true; // boolean to change 
+//int buz=A3;
+ //tag;
+
+int rly=A0;
+//int rly1=A2;
+
+void setup() {
+    lcd.begin(16,2);
+  Serial.begin(9600);
+ //lcd.begin(16,2); // LCD screen
+ SPI.begin(); // Init SPI bus
+  lcd.print("  WELCOME");
+  delay(2000);
+  lcd.clear();
+   lcd.setCursor(0,0);
+      lcd.print("  Smart Card");
+      lcd.setCursor(0, 1);
+      lcd.print(" Scan Your Tag ");
+//  pinMode(buz,OUTPUT);
+  pinMode(rly,OUTPUT);
+//  pinMode(rly1,OUTPUT);
+//  digitalWrite(buz,1);
+  digitalWrite(rly,1);
+//  digitalWrite(rly1,1);
+   mfrc522.PCD_Init(); // Init MFRC522
+}
+
+void loop() {
+//  delay(200);
+//  lcd.clear();
+//  if (NormalMode == false) {
+//    // Function to receive message
+//  //  receive_message();
+//  }
+//  else if (NormalMode == true) {
+//    // System will first look for mode
+//    if (RFIDMode == true) {
+//      // Function to receive message
+//    //  receive_message();
+     
+      // Look for new cards
+      if ( ! mfrc522.PICC_IsNewCardPresent()) {
+        return;
+      }
+      // Select one of the cards
+      if ( ! mfrc522.PICC_ReadCardSerial()) {
+        return;
+      }
+      //Reading from the card
+      String tag = "";
+      for (byte j = 0; j < mfrc522.uid.size; j++)
+      {
+        tag.concat(String(mfrc522.uid.uidByte[j] < 0x10 ? " 0" : " "));
+        tag.concat(String(mfrc522.uid.uidByte[j], HEX));
+      }
+      tag.toUpperCase();
+      //Checking the card
+      if (tag.substring(1) == tagUID)
+      {
+        digitalWrite(rly,0);
+        lcd.clear();
+        lcd.print("CHARGING....");
+  }  
+  else
+  {
+    digitalWrite(rly,1);
+  }
+}
